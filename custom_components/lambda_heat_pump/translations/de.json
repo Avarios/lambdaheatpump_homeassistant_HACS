@@ -1,0 +1,120 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Lambda Wärmepumpe",
+        "description": "Verbindung zur Lambda Wärmepumpen-Steuereinheit konfigurieren.",
+        "data": {
+          "host": "IP-Adresse / Hostname",
+          "port": "Modbus-TCP-Port",
+          "num_heatpumps": "Anzahl Wärmepumpen",
+          "num_heating_circuits": "Anzahl Heizkreise",
+          "num_boilers": "Anzahl Boiler",
+          "num_buffers": "Anzahl Pufferspeicher",
+          "num_solar": "Anzahl Solarmodule",
+          "enable_ambient": "Außentemperatursensor aktivieren",
+          "enable_emanager": "E-Manager aktivieren",
+          "scan_interval": "Abfrageintervall (Sekunden)"
+        },
+        "data_description": {
+          "host": "IPv4/IPv6-Adresse oder Hostname der Lambda Wärmepumpen-Steuereinheit.",
+          "port": "Modbus-TCP-Port der Steuereinheit (Standard: 502).",
+          "num_heatpumps": "Anzahl der konfigurierten Wärmepumpenmodule (1–5).",
+          "num_heating_circuits": "Anzahl der konfigurierten Heizkreismodule (0–12).",
+          "num_boilers": "Anzahl der konfigurierten Boilermodule (0–5).",
+          "num_buffers": "Anzahl der konfigurierten Pufferspeichermodule (0–5).",
+          "num_solar": "Anzahl der konfigurierten Solarmodule (0–2).",
+          "enable_ambient": "Entitäten für das allgemeine Außentemperatursensor-Modul aktivieren.",
+          "enable_emanager": "Entitäten für das allgemeine E-Manager-Modul aktivieren.",
+          "scan_interval": "Wie oft die Wärmepumpe nach aktuellen Werten abgefragt wird (10–300 Sekunden)."
+        }
+      },
+      "reconfigure": {
+        "title": "Lambda Wärmepumpe neu konfigurieren",
+        "description": "Verbindungseinstellungen für Ihre Lambda Wärmepumpe aktualisieren.",
+        "data": {
+          "host": "IP-Adresse / Hostname",
+          "port": "Modbus-TCP-Port",
+          "num_heatpumps": "Anzahl Wärmepumpen",
+          "num_heating_circuits": "Anzahl Heizkreise",
+          "num_boilers": "Anzahl Boiler",
+          "num_buffers": "Anzahl Pufferspeicher",
+          "num_solar": "Anzahl Solarmodule",
+          "enable_ambient": "Außentemperatursensor aktivieren",
+          "enable_emanager": "E-Manager aktivieren",
+          "scan_interval": "Abfrageintervall (Sekunden)"
+        },
+        "data_description": {
+          "host": "IPv4/IPv6-Adresse oder Hostname der Lambda Wärmepumpen-Steuereinheit.",
+          "port": "Modbus-TCP-Port der Steuereinheit (Standard: 502).",
+          "num_heatpumps": "Anzahl der konfigurierten Wärmepumpenmodule (1–5).",
+          "num_heating_circuits": "Anzahl der konfigurierten Heizkreismodule (0–12).",
+          "num_boilers": "Anzahl der konfigurierten Boilermodule (0–5).",
+          "num_buffers": "Anzahl der konfigurierten Pufferspeichermodule (0–5).",
+          "num_solar": "Anzahl der konfigurierten Solarmodule (0–2).",
+          "enable_ambient": "Entitäten für das allgemeine Außentemperatursensor-Modul aktivieren.",
+          "enable_emanager": "Entitäten für das allgemeine E-Manager-Modul aktivieren.",
+          "scan_interval": "Wie oft die Wärmepumpe nach aktuellen Werten abgefragt wird (10–300 Sekunden)."
+        }
+      }
+    },
+    "error": {
+      "invalid_host": "Ungültige IP-Adresse oder Hostname. Bitte eine gültige IPv4/IPv6-Adresse oder einen Hostnamen eingeben.",
+      "invalid_port": "Ungültiger Port. Bitte einen Wert zwischen 1 und 65535 eingeben.",
+      "invalid_num_heatpumps": "Ungültige Anzahl von Wärmepumpen. Bitte einen Wert zwischen 1 und 5 eingeben.",
+      "invalid_num_heating_circuits": "Ungültige Anzahl von Heizkreisen. Bitte einen Wert zwischen 0 und 12 eingeben.",
+      "invalid_num_boilers": "Ungültige Anzahl von Boilern. Bitte einen Wert zwischen 0 und 5 eingeben.",
+      "invalid_num_buffers": "Ungültige Anzahl von Pufferspeichern. Bitte einen Wert zwischen 0 und 5 eingeben.",
+      "invalid_num_solar": "Ungültige Anzahl von Solarmodulen. Bitte einen Wert zwischen 0 und 2 eingeben.",
+      "invalid_scan_interval": "Ungültiges Abfrageintervall. Bitte einen Wert zwischen 10 und 300 Sekunden eingeben.",
+      "cannot_connect": "Verbindung zur Wärmepumpe nicht möglich. Bitte IP-Adresse und Port prüfen und sicherstellen, dass das Gerät erreichbar ist."
+    },
+    "abort": {
+      "already_configured": "Diese Lambda Wärmepumpe ist bereits konfiguriert.",
+      "reconfigure_successful": "Neukonfiguration war erfolgreich."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Lambda Wärmepumpe – Optionen",
+        "description": "Einstellungen für Ihre Lambda Wärmepumpen-Integration aktualisieren.",
+        "data": {
+          "host": "IP-Adresse / Hostname",
+          "port": "Modbus-TCP-Port",
+          "num_heatpumps": "Anzahl Wärmepumpen",
+          "num_heating_circuits": "Anzahl Heizkreise",
+          "num_boilers": "Anzahl Boiler",
+          "num_buffers": "Anzahl Pufferspeicher",
+          "num_solar": "Anzahl Solarmodule",
+          "enable_ambient": "Außentemperatursensor aktivieren",
+          "enable_emanager": "E-Manager aktivieren",
+          "scan_interval": "Abfrageintervall (Sekunden)"
+        },
+        "data_description": {
+          "host": "IPv4/IPv6-Adresse oder Hostname der Lambda Wärmepumpen-Steuereinheit.",
+          "port": "Modbus-TCP-Port der Steuereinheit (Standard: 502).",
+          "num_heatpumps": "Anzahl der konfigurierten Wärmepumpenmodule (1–5).",
+          "num_heating_circuits": "Anzahl der konfigurierten Heizkreismodule (0–12).",
+          "num_boilers": "Anzahl der konfigurierten Boilermodule (0–5).",
+          "num_buffers": "Anzahl der konfigurierten Pufferspeichermodule (0–5).",
+          "num_solar": "Anzahl der konfigurierten Solarmodule (0–2).",
+          "enable_ambient": "Entitäten für das allgemeine Außentemperatursensor-Modul aktivieren.",
+          "enable_emanager": "Entitäten für das allgemeine E-Manager-Modul aktivieren.",
+          "scan_interval": "Wie oft die Wärmepumpe nach aktuellen Werten abgefragt wird (10–300 Sekunden)."
+        }
+      }
+    },
+    "error": {
+      "invalid_host": "Ungültige IP-Adresse oder Hostname. Bitte eine gültige IPv4/IPv6-Adresse oder einen Hostnamen eingeben.",
+      "invalid_port": "Ungültiger Port. Bitte einen Wert zwischen 1 und 65535 eingeben.",
+      "invalid_num_heatpumps": "Ungültige Anzahl von Wärmepumpen. Bitte einen Wert zwischen 1 und 5 eingeben.",
+      "invalid_num_heating_circuits": "Ungültige Anzahl von Heizkreisen. Bitte einen Wert zwischen 0 und 12 eingeben.",
+      "invalid_num_boilers": "Ungültige Anzahl von Boilern. Bitte einen Wert zwischen 0 und 5 eingeben.",
+      "invalid_num_buffers": "Ungültige Anzahl von Pufferspeichern. Bitte einen Wert zwischen 0 und 5 eingeben.",
+      "invalid_num_solar": "Ungültige Anzahl von Solarmodulen. Bitte einen Wert zwischen 0 und 2 eingeben.",
+      "invalid_scan_interval": "Ungültiges Abfrageintervall. Bitte einen Wert zwischen 10 und 300 Sekunden eingeben.",
+      "cannot_connect": "Verbindung zur Wärmepumpe nicht möglich. Bitte IP-Adresse und Port prüfen und sicherstellen, dass das Gerät erreichbar ist."
+    }
+  }
+}

@@ -1,0 +1,252 @@
+# Implementation Plan: Lambda Heat Pump Home Assistant Integration
+
+## Overview
+
+Incremental implementation of the Lambda heat pump Custom Integration for Home Assistant using Modbus TCP. Each phase builds on the previous one and ends with working, testable code.
+
+## Tasks
+
+- [x] 1. Projektstruktur & Grundgerüst
+  - [x] 1.1 Verzeichnisstruktur anlegen und `manifest.json` erstellen
+    - `custom_components/lambda_heat_pump/` Verzeichnis mit allen Unterordnern
+    - `manifest.json` mit domain, name, version, requirements (`pymodbus>=3.6.0`), dependencies, codeowners
+    - _Requirements: 7.7_
+  - [x] 1.2 `const.py` mit `RegisterDefinition` Dataclass und allen Enum-Definitionen erstellen
+    - `RegisterDefinition` Dataclass (number, name, label, access, data_type, unit, scale, device_class, state_class, options, min_value, max_value, step)
+    - Alle Enum-Dicts: `HP_ERROR_STATE`, `HP_STATE`, `HP_OPERATING_STATE`, `HP_REQUEST_TYPE`, `BOILER_OPERATING_STATE`, `BUFFER_OPERATING_STATE`, `BUFFER_REQUEST_TYPE`, `SOLAR_OPERATING_STATE`, `HC_OPERATING_STATE`, `HC_OPERATING_MODE`, `AMBIENT_OPERATING_STATE`, `EMANAGER_OPERATING_STATE`
+    - Alle Register-Listen für alle Modultypen (Heatpump, Boiler, Buffer, Solar, Heating Circuit, Ambient, EManager) als `list[RegisterDefinition]`
+    - Hilfsfunktion `calc_register_address(index, subindex, number) -> int`
+    - _Requirements: 4.1, 4.2, 5.1, 6.1, 6.2, 6.3, 6.4, 6.6, 9.1, 9.2, 9.5_
+  - [x] 1.3 `__init__.py` mit `async_setup_entry` und `async_unload_entry` Grundgerüst erstellen
+    - Plattformen registrieren: sensor, binary_sensor, number, select
+    - Coordinator instanziieren und in `hass.data` speichern
+    - Beim Entladen: Modbus-Verbindung sauber schließen
+    - _Requirements: 7.5, 8.5_
+
+- [x] 2. Modbus Client
+  - [x] 2.1 `modbus_client.py` mit `LambdaModbusClient` implementieren
+    - `AsyncModbusTcpClient` aus pymodbus verwenden, Unit ID 1, FC 0x03 / 0x10
+    - Persistente Verbindung: `connect()`, `disconnect()`, `is_connected` Property
+    - `read_registers(address, count) -> list[int] | None`
+    - `write_registers(address, values) -> bool`
+    - Alle Operationen über `asyncio.Lock` serialisieren
+    - _Requirements: 2.1, 2.6, 2.7, 8.6_
+  - [x] 2.2 Keep-alive und Reconnect-Logik implementieren
+    - Keep-alive: Dummy-Read auf Register 0 wenn >45 Sekunden keine Kommunikation
+    - Reconnect mit exponentiellem Backoff: 5s → 10s → 20s → … → max 300s
+    - Bei Timeout: Verbindung als unterbrochen markieren, Reconnect starten
+    - Bei HA-Neustart: automatisch neu verbinden
+    - _Requirements: 2.2, 2.3, 2.4, 2.5, 8.1, 8.2_
+  - [x] 2.3 Unit Tests für `modbus_client.py` schreiben (`test_modbus_client.py`)
+    - Reconnect-Logik mit gemocktem pymodbus testen
+    - Keep-alive-Timing testen
+    - Fehlerbehandlung bei Timeout und Protokollfehler testen
+    - _Requirements: 2.2, 2.3, 2.4_
+
+- [x] 3. Config Flow
+  - [x] 3.1 `config_flow.py` mit `LambdaHeatPumpConfigFlow` implementieren
+    - `async_step_user`: Formular mit allen Feldern (host, port, num_heatpumps, num_heating_circuits, num_boilers, num_buffers, num_solar, enable_ambient, enable_emanager, scan_interval)
+    - Validierung: IP/Hostname, Port 1-65535, num_heatpumps 1-5, num_heating_circuits 0-12, num_boilers 0-5, num_buffers 0-5, num_solar 0-2
+    - Verbindungstest beim Abschluss der Konfiguration
+    - Aussagekräftige Fehlermeldungen bei Validierungsfehlern
+    - _Requirements: 1.1, 1.2, 1.3, 1.4_
+  - [x] 3.2 `LambdaHeatPumpOptionsFlow` für Rekonfiguration implementieren
+    - `async_step_reconfigure` und `async_step_init` mit vorausgefüllten Werten
+    - _Requirements: 1.6_
+  - [x] 3.3 Unit Tests für `config_flow.py` schreiben (`test_config_flow.py`)
+    - Alle Validierungsregeln testen (gültige und ungültige Eingaben)
+    - Verbindungstest-Fehlerfall testen
+    - Rekonfiguration testen
+    - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.6_
+
+- [x] 4. Coordinator
+  - [x] 4.1 `coordinator.py` mit `LambdaCoordinator` implementieren
+    - Erbt von `DataUpdateCoordinator[dict[int, int]]`
+    - `_async_update_data()`: Alle konfigurierten Register aller Module in einem Durchlauf lesen
+    - Register nach Adressbereichen gruppieren und als zusammenhängende Blöcke lesen
+    - Rückgabe: `dict[register_address, raw_value]`
+    - _Requirements: 3.1, 3.3, 3.4_
+  - [x] 4.2 RW-Refresh-Mechanismus implementieren
+    - `async_write_register(address, value)`: Wert schreiben und in `_active_writes` speichern
+    - `_async_refresh_rw_registers()`: Alle gespeicherten RW-Werte (Number 00-49) alle 4 Minuten neu schreiben
+    - Beim Schreiben von Register 15 (Request Type): zuerst Register 14 (Passwort) schreiben
+    - _Requirements: 3.2, 5.2, 5.3_
+  - [x] 4.3 Unit Tests für `coordinator.py` schreiben (`test_coordinator.py`)
+    - Polling-Logik mit gemocktem Modbus-Client testen
+    - RW-Refresh-Timing testen
+    - Fehlerfall beim Polling testen
+    - _Requirements: 3.1, 3.2, 3.3_
+
+- [x] 5. Entity Basis-Klasse
+  - [x] 5.1 `entity_base.py` mit `LambdaBaseEntity` implementieren
+    - Erbt von `CoordinatorEntity`
+    - Konstruktor: coordinator, module_type, subindex, register_def
+    - `unique_id`: `{config_entry_id}_{module_type}_{subindex}_{number}`
+    - `name`: `Lambda {ModuleType} {Instance} {Datapoint}`
+    - `device_info`: Alle Entities einem HA-Device pro Wärmepumpeneinheit zuordnen
+    - `available`: False wenn Coordinator-Daten fehlen oder Verbindung unterbrochen
+    - _Requirements: 7.1, 7.2, 7.3, 7.6_
+  - [x] 5.2 Unit Tests für `entity_base.py` schreiben (`test_entity_base.py`)
+    - unique_id-Format und Eindeutigkeit testen
+    - Namensschema für alle Modultypen testen
+    - device_info-Struktur und Gerätezuordnung testen
+    - available-Logik bei fehlenden Daten und Verbindungsfehlern testen
+    - _Requirements: 7.1, 7.2, 7.3, 7.6_
+
+- [x] 6. Sensor Entities
+  - [x] 6.1 `sensor.py` mit `LambdaSensor` implementieren
+    - Erbt von `LambdaBaseEntity` und `SensorEntity`
+    - `native_value`: Rohwert aus `coordinator.data[address]` mit Skalierungsfaktor multiplizieren
+    - `device_class`, `state_class`, `native_unit_of_measurement` aus `RegisterDefinition`
+    - Enum-Werte (HP Error State, HP State, Operating States) als Text-State zurückgeben
+    - INT32-Register (stat_energy_e, stat_energy_q): zwei aufeinanderfolgende 16-Bit-Register zu INT32 kombinieren
+    - _Requirements: 4.1, 4.3, 4.4, 4.5, 7.4, 7.5_
+  - [x] 6.2 `async_setup_entry` für sensor.py implementieren
+    - Für alle konfigurierten Heatpumps: alle RO-Register als Sensor-Entities erstellen
+    - Für alle konfigurierten Boiler, Buffer, Solar, Heating Circuits: alle RO-Register als Sensor-Entities erstellen
+    - Für Ambient (wenn aktiviert): alle RO-Register als Sensor-Entities erstellen
+    - Für EManager (wenn aktiviert): alle RO-Register als Sensor-Entities erstellen
+    - _Requirements: 1.5, 4.1, 6.1, 6.2, 6.3, 6.4, 6.5, 9.1, 9.2, 9.3, 9.4_
+  - [x] 6.3 Unit Tests für `sensor.py` schreiben (`test_sensor.py`)
+    - `_combine_int32` für positive, negative und Grenzwerte testen
+    - `native_value` für numerische, Enum- und INT32-Register testen
+    - Korrekte Skalierung und Einheitenzuordnung testen
+    - `async_setup_entry` Entity-Anzahl für alle Modultypen testen
+    - _Requirements: 4.1, 4.3, 4.4, 4.5, 6.1, 6.2, 6.3, 6.4, 9.1, 9.2_
+
+- [x] 7. Binary Sensor Entities
+  - [x] 7.1 `binary_sensor.py` mit `LambdaBinarySensor` implementieren
+    - Erbt von `LambdaBaseEntity` und `BinarySensorEntity`
+    - `is_on`: Rohwert != 0 (für binäre Register wie relay_2nd_stage, boiler_pump_state)
+    - `async_setup_entry`: Binary-Sensor-Entities für alle binären RO-Register aller konfigurierten Module erstellen
+    - _Requirements: 4.1, 6.1, 7.4_
+  - [x] 7.2 Unit Tests für `binary_sensor.py` schreiben (`test_binary_sensor.py`)
+    - `is_on`-Logik für 0, 1 und Nicht-Null-Werte testen
+    - None-Rückgabe bei fehlenden Daten testen
+    - `async_setup_entry` Entity-Anzahl für HP und Boiler testen
+    - _Requirements: 4.1, 6.1, 7.4_
+
+- [x] 8. Number Entities
+  - [x] 8.1 `number.py` mit `LambdaNumber` implementieren
+    - Erbt von `LambdaBaseEntity` und `NumberEntity`
+    - `native_value`: Rohwert aus `coordinator.data[address]` skaliert
+    - `native_min_value`, `native_max_value`, `native_step` aus `RegisterDefinition`
+    - `async_set_native_value`: Wert in Rohwert umrechnen und über `coordinator.async_write_register` schreiben
+    - Bereichsvalidierung vor dem Schreiben; bei Überschreitung Fehler loggen
+    - _Requirements: 5.1, 5.4, 6.1, 6.2, 6.3, 6.4, 9.1, 9.2_
+  - [x] 8.2 `async_setup_entry` für number.py implementieren
+    - Für alle konfigurierten Module: alle RW Number-Register (nicht Enum) als Number-Entities erstellen
+    - Ambient actual_temp (RW), EManager actual_power (RW) einschließen
+    - _Requirements: 1.5, 5.1, 6.1, 6.2, 6.3, 6.4, 9.1, 9.2_
+  - [x] 8.3 Unit Tests für `number.py` schreiben (`test_number.py`)
+    - `native_value` mit Skalierung und negativen INT16-Werten testen
+    - `async_set_native_value` mit Bereichsvalidierung und UINT16-Konvertierung testen
+    - `async_setup_entry` Entity-Anzahl für alle Modultypen testen
+    - _Requirements: 5.1, 5.4, 6.1, 6.2, 6.3, 6.4, 9.1, 9.2_
+
+- [x] 9. Select Entities
+  - [x] 9.1 `select.py` mit `LambdaSelect` implementieren
+    - Erbt von `LambdaBaseEntity` und `SelectEntity`
+    - `current_option`: Rohwert aus `coordinator.data[address]` über `options`-Dict in String mappen; unbekannte Werte als Fallback-String
+    - `options`: Liste aller String-Werte aus `RegisterDefinition.options`
+    - `async_select_option`: String-Option in Rohwert umrechnen und über `coordinator.async_write_register` schreiben
+    - _Requirements: 5.1, 5.2, 6.2, 6.4, 4.3_
+  - [x] 9.2 `async_setup_entry` für select.py implementieren
+    - Für alle konfigurierten Module: alle RW Enum-Register als Select-Entities erstellen (HP request_type, Buffer request_type, HC operating_mode)
+    - _Requirements: 1.5, 5.1, 6.2, 6.4_
+  - [x] 9.3 Unit Tests für `select.py` schreiben (`test_select.py`)
+    - `current_option` für bekannte, unbekannte und negative Rohwerte testen
+    - `async_select_option` mit korrekter UINT16-Konvertierung testen
+    - `async_setup_entry` Entity-Anzahl und Typen für alle Modultypen testen
+    - _Requirements: 5.1, 5.2, 6.2, 6.4, 4.3_
+
+- [x] 10. Checkpoint – Alle bisherigen Tests bestehen
+  - Sicherstellen, dass alle Unit Tests aus Phase 2-4 grün sind. Bei Fragen oder Problemen den Nutzer fragen.
+
+- [x] 11. Translations
+  - [x] 11.1 `strings.json` mit allen Config-Flow-UI-Texten erstellen
+    - Alle Felder des Config Flows mit Labels und Beschreibungen
+    - Alle Fehlermeldungen (invalid_host, invalid_port, cannot_connect, etc.)
+    - _Requirements: 7.8_
+  - [x] 11.2 `translations/en.json` mit englischen Übersetzungen erstellen
+    - Spiegelung von `strings.json` als englische Übersetzungsdatei
+    - _Requirements: 7.8_
+
+- [x] 12. Unit Tests
+  - [x] 12.1 `test_register_address_calculation.py` schreiben
+    - Adressberechnung für alle Modultypen testen (Index 0-5, Subindex 0-11, Number 0-99)
+    - Grenzwerte und Sonderfälle (General Ambient Index 0, Heating Circuit 12 Subindex 11)
+    - _Requirements: 4.2, 6.6, 9.5_
+  - [x] 12.2 `test_data_scaling.py` schreiben
+    - Skalierung und Einheitenumrechnung für alle Skalierungsfaktoren (0.01, 0.1, 1) testen
+    - INT32-Komposition aus zwei UINT16-Registern testen
+    - _Requirements: 4.1, 4.5_
+  - [x] 12.3 `test_entity_creation.py` schreiben
+    - Korrekte Anzahl und Typen der erstellten Entities für verschiedene Konfigurationen prüfen
+    - Alle Modultypen einschließlich Ambient und EManager abdecken
+    - _Requirements: 1.5, 4.1, 5.1, 6.1, 6.2, 6.3, 6.4, 9.1, 9.2_
+  - [x] 12.4 `test_integration_setup.py` schreiben
+    - Vollständiges Setup/Teardown mit gemocktem Modbus-Server testen
+    - Fehlerfall beim Start (Verbindung nicht möglich) testen
+    - _Requirements: 8.1, 8.5_
+
+- [x] 13. Property-Based Tests (hypothesis)
+  - [x] 13.1 [PBT] Property 1: Register Address Calculation Round-Trip
+    - Generator: Zufällige (index, subindex, number)-Tripel in gültigen Bereichen (index 0-5, subindex 0-11, number 0-99)
+    - Assertion: Adresse → Rückrechnung → gleiche Originalwerte
+    - `@settings(max_examples=100)`
+    - `# Feature: lambda-heat-pump-ha-integration, Property 1: Register address calculation round-trip`
+    - _Requirements: 4.2, 6.6, 9.5_
+  - [x] 13.2 [PBT] Property 2: Scaling Round-Trip
+    - Generator: Zufällige INT16/UINT16 Rohwerte, Skalierungsfaktoren aus der Spezifikation (0.01, 0.1, 1)
+    - Assertion: `scaled_to_raw(raw_to_scaled(v, s), s) == v`
+    - `@settings(max_examples=100)`
+    - `# Feature: lambda-heat-pump-ha-integration, Property 2: Scaling round-trip`
+    - _Requirements: 4.1, 5.1, 6.1, 6.2, 6.3, 6.4, 9.1, 9.2_
+  - [x] 13.3 [PBT] Property 3: Enum Mapping Completeness
+    - Generator: Alle definierten Enum-Rohwerte aus der Spezifikation für alle 12 Enum-Typen
+    - Assertion: Jeder Wert liefert einen nicht-leeren String; unbekannte Werte liefern Fallback-String statt Exception
+    - `@settings(max_examples=100)`
+    - `# Feature: lambda-heat-pump-ha-integration, Property 3: Enum mapping completeness`
+    - _Requirements: 4.3, 5.1, 6.1, 6.2, 6.3, 6.4, 9.1, 9.2_
+  - [x] 13.4 [PBT] Property 4: INT32 Composition Round-Trip
+    - Generator: Zufällige INT32-Werte im Bereich [-2^31, 2^31-1]
+    - Assertion: `combine_int32(split_int32(v)) == v`
+    - `@settings(max_examples=100)`
+    - `# Feature: lambda-heat-pump-ha-integration, Property 4: INT32 round-trip`
+    - _Requirements: 4.5_
+  - [x] 13.5 [PBT] Property 5: Configuration Validation
+    - Generator: Zufällige Eingaben für alle Konfigurationsfelder inkl. Grenzwerte und ungültige Werte
+    - Assertion: Ungültige Eingaben werden immer abgelehnt; gültige Eingaben werden immer akzeptiert
+    - `@settings(max_examples=100)`
+    - `# Feature: lambda-heat-pump-ha-integration, Property 5: Config validation`
+    - _Requirements: 1.1, 1.2, 1.3_
+  - [x] 13.6 [PBT] Property 6: Entity Unique IDs Are Distinct
+    - Generator: Zufällige gültige Konfigurationen (verschiedene Modulanzahlen innerhalb der definierten Grenzen)
+    - Assertion: Alle generierten Unique IDs sind paarweise verschieden
+    - `@settings(max_examples=100)`
+    - `# Feature: lambda-heat-pump-ha-integration, Property 6: Unique ID distinctness`
+    - _Requirements: 7.1_
+  - [x] 13.7 [PBT] Property 7: Entity Count Is Deterministic from Configuration
+    - Generator: Zufällige gültige Konfigurationen mit allen Modultypen
+    - Assertion: `len(entities) == sum(expected_entities_per_module_type)` gemäß den Zählregeln aus dem Design
+    - `@settings(max_examples=100)`
+    - `# Feature: lambda-heat-pump-ha-integration, Property 7: Entity count determinism`
+    - _Requirements: 1.5, 4.1, 5.1, 6.1, 6.2, 6.3, 6.4, 6.5, 9.1, 9.2, 9.3, 9.4_
+  - [x] 13.8 [PBT] Property 8: RW Write Values Are Stored in Refresh Store
+    - Generator: Zufällige RW-Register-Adressen mit Number 00-49 und zufällige Werte
+    - Assertion: Nach dem Schreiben ist der Wert im Refresh-Store des Coordinators vorhanden
+    - `@settings(max_examples=100)`
+    - `# Feature: lambda-heat-pump-ha-integration, Property 8: RW refresh store`
+    - _Requirements: 3.2, 5.3_
+
+- [x] 14. Finaler Checkpoint – Alle Tests bestehen
+  - Sicherstellen, dass alle Unit Tests und Property-Based Tests grün sind. Bei Fragen oder Problemen den Nutzer fragen.
+
+## Notes
+
+- Alle Tasks sind Pflicht (required), keine optionalen Tasks
+- Jeder Task referenziert spezifische Requirements für Rückverfolgbarkeit
+- PBT-Tasks verwenden `hypothesis` mit `@settings(max_examples=100)`
+- Jeder PBT-Task implementiert genau eine Property aus dem Design-Dokument
+- Checkpoints stellen sicher, dass die Implementierung inkrementell validiert wird

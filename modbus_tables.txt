@@ -1,0 +1,27 @@
+=== PAGE 11 ===
+Modul | Index | Subintex | Number | Register name | Read / Write | Data format | Unit | Register desciption
+Heat pump (ModulNr. 1-5) | 1 | heat pump 1 = 0 heat pump 2 = 1 heat pump 3 = 2 heat pump 4 = 3 heat pump 5 = 4 | 00 | Hp Error state | RO | UINT16 | [Nr] | 0 = NONE, 1 = MESSAGE, 2 = WARNING, 3 = ALARM, 4 = FAULT
+ |  |  | 01 | Hp Error number | RO | INT16 | [Nr] | Scrolling through all active error numbers (Nr.1 - Nr.99)
+ |  |  | 02 | Hp State | RO | UINT16 | [Nr] | 0 = INIT, 1 = REFERENCE, 2 = RESTART-BLOCK, 3 = READY, 4 = START PUMPS, 5 = START COMPRESSOR, 6 = PRE-REGULATION, 7 = REGULATION, 8 = Not Used, 9 = COOLING, 10 = DEFROSTING, 20 = STOPPING, 30 = FAULT-LOCK, 31 = ALARM-BLOCK, 40 = ERROR-RESET
+ |  |  | 03 | Operating state | RO | UINT16 | [Nr] | 0 = STBY, 1 = CH, 2 = DHW, 3 = CC, 4 = CIRCULATE, 5 = DEFROST, 6 = OFF, 7 = FROST, 8 = STBY-FROST, 9 = Not used, 10 = SUMMER, 11 = HOLIDAY, 12 = ERROR, 13 = WARNING, 14 = INFO-MESSAGE, 15 = TIME-BLOCK, 16 = RELEASE-BLOCK, 17 = MINTEMP-BLOCK, 18 = FIRMWARE-DOWNLOAD
+ |  |  | 04 | T-flow | RO | INT16 | [0.01°C] | Flow line temperature
+ |  |  | 05 | T-return | RO | INT16 | [0.01°C] | Return line temperature
+ |  |  | 06 | Vol. sink | RO | INT16 | [0.01l/min] | Volume flow heat sink
+ |  |  | 07 | T-EQin | RO | INT16 | [0.01°C] | Energy source inlet temperature
+ |  |  | 08 | T-EQout | RO | INT16 | [0.01°C] | Energy sorurce outlet temperature
+ |  |  | 09 | Vol. source | RO | INT16 | [0.01l/min] | Volume flow energy source
+ |  |  | 10 | Compressor-Rating | RO | UINT16 | [0.01%] | Compressor unit rating
+ |  |  | 11 | Qp heating | RO | INT16 | [0.1kW] | Actual heating capacity
+ |  |  | 12 | FI power consumption | RO | INT16 | [Watt] | Frequency inverter actual power consumption
+ |  |  | 13 | COP | RO | INT16 | [0.01%] | Coefficient of performance
+ |  |  | 14 | Modbus request release password | RW | UINT16 | [Nr] | Password register to release modbus request registers (maximum 10 retries are possieble)
+ |  |  | 15 | Request type | RW | INT16 | [Nr] | 0 = NO REQUEST, 1 = FLOW PUMP CIRCULATION, 2 = CENTRAL HEATING, 3 = CENTRAL COOLING, 4 = DOMESTIC HOT WATER
+ |  |  | 16 | Request flow line temp | RW | INT16 | [0.1°C] | Requested flow line temperature. (min = 0.0°C, max = 70.0°C)
+ |  |  | 17 | Request return line temp | RW | INT16 | [0.1°C] | Requested return line temperature. (min = 0.0°C, max = 65.0°C)
+ |  |  | 18 | Request heat sink temp. diff | RW | INT16 | [0.1K] | Requested temperature difference between flow line and return line. (min = 0.0K, max = 35.0K)
+ |  |  | 19 | Relais state for 2nd heating stage | RO | INT16 | 0/1 | 1 = NO-Relais for 2nd heating stage is activated
+ |  |  | 20 | Statistic VdA E since last reset | RO | INT32 | [Wh] | Accumulated electrical energy consumption of compressor unit since last statistic reset
+ |  |  | 21 |  |  |  |  | 
+ |  |  | 22 | Statistic VdA Q since last reset | RO | INT32 | [Wh] | Accumulated thermal energy output of compressor unit since last statistic reset
+ |  |  | 23 |  |  |  |  | 
+

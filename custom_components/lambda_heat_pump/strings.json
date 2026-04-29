@@ -1,0 +1,120 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Lambda Heat Pump",
+        "description": "Configure the connection to your Lambda heat pump control unit.",
+        "data": {
+          "host": "IP Address / Hostname",
+          "port": "Modbus TCP Port",
+          "num_heatpumps": "Number of Heat Pumps",
+          "num_heating_circuits": "Number of Heating Circuits",
+          "num_boilers": "Number of Boilers",
+          "num_buffers": "Number of Buffer Tanks",
+          "num_solar": "Number of Solar Modules",
+          "enable_ambient": "Enable Ambient Sensor",
+          "enable_emanager": "Enable E-Manager",
+          "scan_interval": "Polling Interval (seconds)"
+        },
+        "data_description": {
+          "host": "IPv4/IPv6 address or hostname of the Lambda heat pump control unit.",
+          "port": "Modbus TCP port of the control unit (default: 502).",
+          "num_heatpumps": "Number of configured heat pump modules (1–5).",
+          "num_heating_circuits": "Number of configured heating circuit modules (0–12).",
+          "num_boilers": "Number of configured boiler modules (0–5).",
+          "num_buffers": "Number of configured buffer tank modules (0–5).",
+          "num_solar": "Number of configured solar modules (0–2).",
+          "enable_ambient": "Enable entities for the general ambient sensor module.",
+          "enable_emanager": "Enable entities for the general E-Manager module.",
+          "scan_interval": "How often to poll the heat pump for updated values (10–300 seconds)."
+        }
+      },
+      "reconfigure": {
+        "title": "Reconfigure Lambda Heat Pump",
+        "description": "Update the connection settings for your Lambda heat pump.",
+        "data": {
+          "host": "IP Address / Hostname",
+          "port": "Modbus TCP Port",
+          "num_heatpumps": "Number of Heat Pumps",
+          "num_heating_circuits": "Number of Heating Circuits",
+          "num_boilers": "Number of Boilers",
+          "num_buffers": "Number of Buffer Tanks",
+          "num_solar": "Number of Solar Modules",
+          "enable_ambient": "Enable Ambient Sensor",
+          "enable_emanager": "Enable E-Manager",
+          "scan_interval": "Polling Interval (seconds)"
+        },
+        "data_description": {
+          "host": "IPv4/IPv6 address or hostname of the Lambda heat pump control unit.",
+          "port": "Modbus TCP port of the control unit (default: 502).",
+          "num_heatpumps": "Number of configured heat pump modules (1–5).",
+          "num_heating_circuits": "Number of configured heating circuit modules (0–12).",
+          "num_boilers": "Number of configured boiler modules (0–5).",
+          "num_buffers": "Number of configured buffer tank modules (0–5).",
+          "num_solar": "Number of configured solar modules (0–2).",
+          "enable_ambient": "Enable entities for the general ambient sensor module.",
+          "enable_emanager": "Enable entities for the general E-Manager module.",
+          "scan_interval": "How often to poll the heat pump for updated values (10–300 seconds)."
+        }
+      }
+    },
+    "error": {
+      "invalid_host": "Invalid IP address or hostname. Please enter a valid IPv4/IPv6 address or hostname.",
+      "invalid_port": "Invalid port. Please enter a value between 1 and 65535.",
+      "invalid_num_heatpumps": "Invalid number of heat pumps. Please enter a value between 1 and 5.",
+      "invalid_num_heating_circuits": "Invalid number of heating circuits. Please enter a value between 0 and 12.",
+      "invalid_num_boilers": "Invalid number of boilers. Please enter a value between 0 and 5.",
+      "invalid_num_buffers": "Invalid number of buffer tanks. Please enter a value between 0 and 5.",
+      "invalid_num_solar": "Invalid number of solar modules. Please enter a value between 0 and 2.",
+      "invalid_scan_interval": "Invalid polling interval. Please enter a value between 10 and 300 seconds.",
+      "cannot_connect": "Cannot connect to the heat pump. Please check the IP address and port, and ensure the device is reachable."
+    },
+    "abort": {
+      "already_configured": "This Lambda heat pump is already configured.",
+      "reconfigure_successful": "Reconfiguration was successful."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Lambda Heat Pump Options",
+        "description": "Update the settings for your Lambda heat pump integration.",
+        "data": {
+          "host": "IP Address / Hostname",
+          "port": "Modbus TCP Port",
+          "num_heatpumps": "Number of Heat Pumps",
+          "num_heating_circuits": "Number of Heating Circuits",
+          "num_boilers": "Number of Boilers",
+          "num_buffers": "Number of Buffer Tanks",
+          "num_solar": "Number of Solar Modules",
+          "enable_ambient": "Enable Ambient Sensor",
+          "enable_emanager": "Enable E-Manager",
+          "scan_interval": "Polling Interval (seconds)"
+        },
+        "data_description": {
+          "host": "IPv4/IPv6 address or hostname of the Lambda heat pump control unit.",
+          "port": "Modbus TCP port of the control unit (default: 502).",
+          "num_heatpumps": "Number of configured heat pump modules (1–5).",
+          "num_heating_circuits": "Number of configured heating circuit modules (0–12).",
+          "num_boilers": "Number of configured boiler modules (0–5).",
+          "num_buffers": "Number of configured buffer tank modules (0–5).",
+          "num_solar": "Number of configured solar modules (0–2).",
+          "enable_ambient": "Enable entities for the general ambient sensor module.",
+          "enable_emanager": "Enable entities for the general E-Manager module.",
+          "scan_interval": "How often to poll the heat pump for updated values (10–300 seconds)."
+        }
+      }
+    },
+    "error": {
+      "invalid_host": "Invalid IP address or hostname. Please enter a valid IPv4/IPv6 address or hostname.",
+      "invalid_port": "Invalid port. Please enter a value between 1 and 65535.",
+      "invalid_num_heatpumps": "Invalid number of heat pumps. Please enter a value between 1 and 5.",
+      "invalid_num_heating_circuits": "Invalid number of heating circuits. Please enter a value between 0 and 12.",
+      "invalid_num_boilers": "Invalid number of boilers. Please enter a value between 0 and 5.",
+      "invalid_num_buffers": "Invalid number of buffer tanks. Please enter a value between 0 and 5.",
+      "invalid_num_solar": "Invalid number of solar modules. Please enter a value between 0 and 2.",
+      "invalid_scan_interval": "Invalid polling interval. Please enter a value between 10 and 300 seconds.",
+      "cannot_connect": "Cannot connect to the heat pump. Please check the IP address and port, and ensure the device is reachable."
+    }
+  }
+}

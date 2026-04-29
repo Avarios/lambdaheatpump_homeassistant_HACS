@@ -1,0 +1,11 @@
+{
+  "domain": "lambda_heat_pump",
+  "name": "Lambda Heat Pump",
+  "version": "1.0.0",
+  "documentation": "https://github.com/your-repo/lambda-heat-pump-ha-integration",
+  "requirements": ["pymodbus>=3.6.0"],
+  "dependencies": [],
+  "codeowners": ["@your-github-username"],
+  "iot_class": "local_polling",
+  "config_flow": true
+}
